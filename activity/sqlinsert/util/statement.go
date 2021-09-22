@@ -47,7 +47,7 @@ func NewSQLStatement(dbHelper DbHelper, sql string) (*SQLStatement, error) {
 		return nil, err
 	}
 
-	bt :=  dbHelper.BindType()
+	bt := dbHelper.BindType()
 
 	parts := parse(sql, bt)
 	numMap := make(map[string]int)
@@ -159,6 +159,38 @@ func (s *SQLStatement) GetPreparedStatementArgs(params map[string]interface{}) [
 	return sParams
 }
 
+func (s *SQLStatement) GetStatementArgs(params map[string]interface{}) []interface{} {
+
+	var sParams []interface{}
+
+	switch s.dbHelper.BindType() {
+	case BtAt, BtColon:
+		//named
+		for name, value := range params {
+			sParams = append(sParams, sql.Named(name, value))
+		}
+	case BtQuestion:
+		for _, part := range s.parts {
+			if pPart, ok := part.(*paramPart); ok {
+				if v, ok := params[pPart.param]; ok {
+					sParams = append(sParams, v)
+				}
+			}
+		}
+	case BtDollar:
+
+		// sParams = make([]interface{}, 3)
+		// for name, id := range s.placeholderIds {
+		// 	sParams[id-1] = params[name]
+		// }
+		for _, value := range params {
+			sParams = append(sParams, value)
+		}
+	}
+
+	return sParams
+}
+
 func parse(sqlStatement string, bindType BindType) []Part {
 	var i, j, start int
 
@@ -185,6 +217,19 @@ func parse(sqlStatement string, bindType BindType) []Part {
 			start = i
 			for j = i; j < len(sqlStatement); j++ {
 				if sqlStatement[j] == ' ' {
+					break
+				}
+			}
+			parts = append(parts, newParamPart(sqlStatement[start+1:j], bindType))
+			i = j
+			start = j
+			// }
+		} else if sqlStatement[i] == '$' {
+
+			parts = append(parts, &literalPart{literal: sqlStatement[start:i]})
+			start = i
+			for j = i; j < len(sqlStatement); j++ {
+				if sqlStatement[j] == ',' || sqlStatement[j] == ')' {
 					break
 				}
 			}
@@ -231,6 +276,8 @@ func newParamPart(param string, bindType BindType) Part {
 		part.placeholder = "@" + param
 	case BtColon:
 		part.placeholder = ":" + param
+	case BtDollar:
+		part.placeholder = "$" + param
 	default:
 		part.placeholder = "?"
 	}
@@ -254,5 +301,5 @@ func (p *paramPart) Placeholder() string {
 }
 
 func (p *paramPart) String() string {
-	return ":" + p.param
+	return "$" + p.param
 }

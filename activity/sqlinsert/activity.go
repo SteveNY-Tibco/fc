@@ -112,31 +112,47 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 func (a *Activity) doInsert(params map[string]interface{}) (interface{}, error) {
 
 	var err error
-	var rows *sql.Rows
+	var results sql.Result
 
 	if a.stmt != nil {
-		args := a.sqlStatement.GetPreparedStatementArgs(params)
-		rows, err = a.stmt.Query(args...)
+		// MAG
+		log.RootLogger().Infof("Executing statement: %v", " state")
+		// args := a.sqlStatement.GetPreparedStatementArgs(params)
+		// rows, err = a.stmt.Exec(args...)
 	} else {
-		rows, err = a.db.Query(a.sqlStatement.ToStatementSQL(params))
+
+		stmt := a.sqlStatement.ToStatementSQL(params)
+		// stmt := a.sqlStatement.String()
+
+		// rows = a.db.Exec(a.sqlStatement.ToStatementSQL(params), "abc", "test")
+		// sqlStatement := `INSERT INTO readings_numeric(id, created, gatewayid, deviceid, resourceid, value) VALUES($1, $2, $3, $4, $5, $6)`
+		// INSERT INTO users (age, email, first_name, last_name)
+		// VALUES ($1, $2, $3, $4)`
+
+		// 		sqlStatement := `
+		// INSERT INTO users (age, email, first_name, last_name)
+		// VALUES ($1, $2, $3, $4)`
+		// sargs := a.sqlStatement.GetStatementArgs(params)
+		// log.RootLogger().Infof("GetStatementArgs: %v", sargs...)
+
+		// results, _ = a.db.Exec(stmt, "abc", "2021-05-26 19:24:21", "gate1", "device1", "res1", 100)
+
+		results, _ = a.db.Exec(stmt)
+
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	defer rows.Close()
+	// // defer rows.Close()
 
-	var results interface{}
+	// var results interface{}
 
-	if a.labeledResults {
-		results, err = getLabeledResults(a.dbHelper, rows)
-	} else {
-		results, err = getResults(a.dbHelper, rows)
-	}
-
-	if err != nil {
-		return nil, err
-	}
+	// if a.labeledResults {
+	// 	results, err = getLabeledResults(a.dbHelper, rows)
+	// } else {
+	// 	results, err = getResults(a.dbHelper, rows)
+	// }
 
 	return results, nil
 }

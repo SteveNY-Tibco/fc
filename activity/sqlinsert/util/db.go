@@ -146,7 +146,7 @@ type postgresDBHelper struct {
 }
 
 func (*postgresDBHelper) DbType() DbType {
-	return DbMySql
+	return DbPostgres
 }
 
 func (*postgresDBHelper) BindType() BindType {
