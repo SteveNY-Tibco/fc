@@ -96,6 +96,8 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 
+	log.RootLogger().Debugf("Eval input params: %v", in.Params)
+
 	results, err := a.doInsert(in.Params)
 	if err != nil {
 		return false, err
@@ -116,13 +118,13 @@ func (a *Activity) doInsert(params map[string]interface{}) (interface{}, error) 
 
 	if a.stmt != nil {
 		// MAG
-		log.RootLogger().Infof("Executing statement: %v", " state")
+		log.RootLogger().Debugf("Executing statement: %v", " state")
 		// args := a.sqlStatement.GetPreparedStatementArgs(params)
 		// rows, err = a.stmt.Exec(args...)
 	} else {
 
 		stmt := a.sqlStatement.ToStatementSQL(params)
-		log.RootLogger().Infof("Executing statement: %v", stmt)
+		log.RootLogger().Debugf("Executing statement: %v", stmt)
 		// stmt := a.sqlStatement.String()
 
 		// rows = a.db.Exec(a.sqlStatement.ToStatementSQL(params), "abc", "test")
@@ -230,6 +232,8 @@ func getResults(dbHelper util.DbHelper, rows *sql.Rows) ([][]interface{}, error)
 
 //todo move to shared connection
 func getConnection(s *Settings) (*sql.DB, error) {
+
+	log.RootLogger().Infof("getConnection DataSourceName:  %v", s.DataSourceName)
 
 	db, err := sql.Open(s.DriverName, s.DataSourceName)
 	if err != nil {
