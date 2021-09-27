@@ -34,6 +34,8 @@ func New(ctx activity.InitContext) (activity.Activity, error) {
 
 	ctx.Logger().Debugf("DB: '%s'", s.DbType)
 
+	log.RootLogger().Debugf("New activity settings:  %v", s)
+
 	// todo move this to a shared connection object
 	db, err := getConnection(s)
 	if err != nil {
@@ -96,7 +98,7 @@ func (a *Activity) Eval(ctx activity.Context) (done bool, err error) {
 		return false, err
 	}
 
-	log.RootLogger().Debugf("Eval input params: %v", in.Params)
+	log.RootLogger().Debugf("Eval input params: %v  Total num params: %v", in.Params, len(in.Params))
 
 	results, err := a.doInsert(in.Params)
 	if err != nil {
@@ -233,7 +235,7 @@ func getResults(dbHelper util.DbHelper, rows *sql.Rows) ([][]interface{}, error)
 //todo move to shared connection
 func getConnection(s *Settings) (*sql.DB, error) {
 
-	log.RootLogger().Infof("getConnection DataSourceName:  %v", s.DataSourceName)
+	log.RootLogger().Debugf("getConnection DataSourceName:  %v", s.DataSourceName)
 
 	db, err := sql.Open(s.DriverName, s.DataSourceName)
 	if err != nil {
