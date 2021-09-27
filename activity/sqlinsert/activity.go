@@ -122,7 +122,7 @@ func (a *Activity) doInsert(params map[string]interface{}) (interface{}, error) 
 	} else {
 
 		stmt := a.sqlStatement.ToStatementSQL(params)
-		log.RootLogger().Infof("Executing statement: %v", " stmt")
+		log.RootLogger().Infof("Executing statement: %v", stmt)
 		// stmt := a.sqlStatement.String()
 
 		// rows = a.db.Exec(a.sqlStatement.ToStatementSQL(params), "abc", "test")
